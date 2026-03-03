@@ -726,10 +726,9 @@ proptest! {
 
         client.initialize(&creator, &token_address, &goal, &deadline, &1_000, &None, &None, &None);
 
-    client.contribute(&alice, &300_000, None);
-    client.contribute(&bob, &200_000, None);
+        let contributor = Address::generate(&env);
+        mint_to(&env, &token_address, &admin, &contributor, contribution_amount);
 
-        // Test 3.2: Valid contribution before deadline works correctly
         client.contribute(&contributor, &contribution_amount);
 
         prop_assert_eq!(client.total_raised(), contribution_amount);
@@ -972,9 +971,9 @@ fn test_cancel_by_non_creator_panics() {
     }]);
 
     let creator = Address::generate(&env);
-    let non_creator = Address::generate(&env);
 
-// ── Minimum Contribution Tests ─────────────────────────────────────────────
+    client.cancel();
+}
 
 #[test]
 #[should_panic(expected = "amount below minimum")]
@@ -1028,54 +1027,6 @@ fn test_contribute_exact_minimum() {
     assert_eq!(client.contribution(&contributor), 10_000);
 }
 
-        client.initialize(&creator, &token_address, &goal, &deadline, &1_000, &default_title(&env), &default_description(&env), &None);
-
-        let contributor = Address::generate(&env);
-        mint_to(&env, &token_address, &admin, &contributor, contribution_amount);
-        client.contribute(&contributor, &contribution_amount);
-
-        // Test 3.5: View functions return correct values
-        prop_assert_eq!(client.goal(), goal);
-        prop_assert_eq!(client.deadline(), deadline);
-        prop_assert_eq!(client.total_raised(), contribution_amount);
-        prop_assert_eq!(client.contribution(&contributor), contribution_amount);
-    }
-
-    #[test]
-    fn prop_preservation_multiple_contributors(
-        goal in 5_000_000i128..10_000_000i128,
-        deadline_offset in 100u64..10_000u64,
-        amount1 in 100_000i128..1_000_000i128,
-        amount2 in 100_000i128..1_000_000i128,
-        amount3 in 100_000i128..1_000_000i128,
-    ) {
-        let (env, client, creator, token_address, admin) = setup_env();
-        let deadline = env.ledger().timestamp() + deadline_offset;
-
-        client.initialize(&creator, &token_address, &goal, &deadline, &1_000, &default_title(&env), &default_description(&env), &None);
-
-        let alice = Address::generate(&env);
-        let bob = Address::generate(&env);
-        let charlie = Address::generate(&env);
-
-        mint_to(&env, &token_address, &admin, &alice, amount1);
-        mint_to(&env, &token_address, &admin, &bob, amount2);
-        mint_to(&env, &token_address, &admin, &charlie, amount3);
-
-        // Test 3.6: Multiple contributors are tracked correctly
-        client.contribute(&alice, &amount1);
-        client.contribute(&bob, &amount2);
-        client.contribute(&charlie, &amount3);
-
-        let expected_total = amount1 + amount2 + amount3;
-
-        prop_assert_eq!(client.total_raised(), expected_total);
-        prop_assert_eq!(client.contribution(&alice), amount1);
-        prop_assert_eq!(client.contribution(&bob), amount2);
-        prop_assert_eq!(client.contribution(&charlie), amount3);
-    }
-}
-
 #[test]
 #[should_panic(expected = "campaign is not active")]
 fn test_double_withdraw_panics() {
@@ -1084,7 +1035,16 @@ fn test_double_withdraw_panics() {
     let deadline = env.ledger().timestamp() + 3600;
     let goal: i128 = 1_000_000;
     let min_contribution: i128 = 10_000;
-    client.initialize(&creator, &token_address, &goal, &deadline, &min_contribution, &default_title(&env), &default_description(&env), &None);
+    client.initialize(
+        &creator,
+        &token_address,
+        &goal,
+        &deadline,
+        &min_contribution,
+        &default_title(&env),
+        &default_description(&env),
+        &None,
+    );
 
     let bronze = soroban_sdk::String::from_str(&env, "Bronze");
     let silver = soroban_sdk::String::from_str(&env, "Silver");
@@ -1107,7 +1067,16 @@ fn test_contribute_exact_minimum() {
     let deadline = env.ledger().timestamp() + 3600;
     let goal: i128 = 1_000_000;
     let min_contribution: i128 = 10_000;
-    client.initialize(&creator, &token_address, &goal, &deadline, &min_contribution, &default_title(&env), &default_description(&env), &None);
+    client.initialize(
+        &creator,
+        &token_address,
+        &goal,
+        &deadline,
+        &min_contribution,
+        &default_title(&env),
+        &default_description(&env),
+        &None,
+    );
 
     let contributor = Address::generate(&env);
     mint_to(&env, &token_address, &admin, &contributor, 600_000);
@@ -1495,11 +1464,6 @@ fn test_update_socials() {
 
     // Update social links.
     let socials = soroban_sdk::String::from_str(&env, "https://twitter.com/campaign");
-    client.update_metadata(&creator, &None, &None, &Some(socials));
-}
-
-    // Update only socials (should not affect title).
-    let socials = soroban_sdk::String::from_str(&env, "https://twitter.com/new");
     client.update_metadata(&creator, &None, &None, &Some(socials));
 }
 

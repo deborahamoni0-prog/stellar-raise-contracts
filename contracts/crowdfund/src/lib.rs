@@ -628,6 +628,14 @@ impl CrowdfundContract {
             }
         }
 
+        env.storage().instance().set(&DataKey::TotalRaised, &0i128);
+        env.storage()
+            .instance()
+            .set(&DataKey::Status, &Status::Refunded);
+
+        Ok(())
+    }
+
     /// Cancel the campaign and refund all contributors — callable only by
     /// the creator while the campaign is still Active.
     pub fn cancel(env: Env) {
