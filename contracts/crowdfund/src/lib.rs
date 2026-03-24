@@ -7,12 +7,16 @@ use soroban_sdk::{
     Symbol, Vec,
 };
 
+pub mod soroban_sdk_minor;
+
 #[cfg(test)]
 mod auth_tests;
 #[cfg(test)]
 mod proptest_generator_boundary;
 #[cfg(test)]
 mod proptest_generator_boundary_tests;
+#[cfg(test)]
+mod soroban_sdk_minor_tests;
 #[cfg(test)]
 mod test;
 
