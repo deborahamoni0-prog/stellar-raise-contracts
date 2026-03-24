@@ -130,6 +130,10 @@ pub enum ContractError {
     Overflow = 6,
     /// Returned by `refund_single` when the caller has no contribution to refund.
     NothingToRefund = 7,
+    /// Returned when the campaign goal is below the minimum allowed threshold.
+    GoalTooLow = 8,
+    /// Returned when the contribution amount is below the campaign minimum.
+    AmountTooLow = 9,
 }
 
 #[contractclient(name = "NftContractClient")]
@@ -248,7 +252,7 @@ impl CrowdfundContract {
             .get(&DataKey::MinContribution)
             .unwrap();
         if amount < min_contribution {
-            panic!("amount below minimum");
+            return Err(ContractError::AmountTooLow);
         }
 
         let deadline: u64 = env.storage().instance().get(&DataKey::Deadline).unwrap();
@@ -354,7 +358,7 @@ impl CrowdfundContract {
             .get(&DataKey::MinContribution)
             .unwrap();
         if amount < min_contribution {
-            panic!("amount below minimum");
+            return Err(ContractError::AmountTooLow);
         }
 
         let deadline: u64 = env.storage().instance().get(&DataKey::Deadline).unwrap();
