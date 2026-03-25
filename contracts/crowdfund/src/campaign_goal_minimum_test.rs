@@ -3,6 +3,7 @@
 //! Coverage:
 //!   - All constant values are correct and stable
 //!   - `validate_goal`            — happy path, boundary, below minimum
+//!   - `validate_goal_amount`     — typed ContractError::GoalTooLow variant
 //!   - `validate_min_contribution`— happy path, boundary, below minimum
 //!   - `validate_deadline`        — happy path, exact boundary, too soon, overflow safety
 //!   - `validate_platform_fee`    — happy path, exact cap, above cap
@@ -15,6 +16,7 @@ use crate::campaign_goal_minimum::{
 };
 use crate::ContractError;
 use soroban_sdk::Env;
+
 // ── Constant value assertions ─────────────────────────────────────────────────
 
 /// Ensures constants have not been accidentally changed.
@@ -259,24 +261,22 @@ fn validate_goal_amount_accepts_well_above_threshold() {
     assert!(validate_goal_amount(&env, 1_000_000_000).is_ok());
 }
 
-/// Test Case 3 (Failure): goal below threshold returns ContractError::GoalTooLow.
+/// Test Case 3 (Failure): goal below threshold returns Error::GoalTooLow.
 #[test]
 fn validate_goal_amount_rejects_below_threshold_with_goal_too_low() {
     let env = Env::default();
-    assert_eq!(
-        validate_goal_amount(&env, MIN_GOAL_AMOUNT - 1),
-        Err(ContractError::GoalTooLow)
-    );
+    let result = validate_goal_amount(&env, MIN_GOAL_AMOUNT - 1);
+    assert_eq!(result, Err(ContractError::GoalTooLow));
 }
 
-/// Test Case 4 (Edge Case): zero goal returns ContractError::GoalTooLow.
+/// Test Case 4 (Edge Case): zero goal returns Error::GoalTooLow.
 #[test]
 fn validate_goal_amount_rejects_zero() {
     let env = Env::default();
     assert_eq!(validate_goal_amount(&env, 0), Err(ContractError::GoalTooLow));
 }
 
-/// Test Case 4 (Edge Case): negative goal returns ContractError::GoalTooLow.
+/// Test Case 4 (Edge Case): negative goal returns Error::GoalTooLow.
 #[test]
 fn validate_goal_amount_rejects_negative() {
     let env = Env::default();

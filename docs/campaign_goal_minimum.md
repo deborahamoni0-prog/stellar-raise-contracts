@@ -47,7 +47,7 @@ contract upgrade:
    cargo build --release --target wasm32-unknown-unknown -p crowdfund
    ```
 3. Upload and upgrade via the admin mechanism (see
-   `docs/admin_upgrade_mechanism.md`).
+   `contracts/crowdfund/admin_upgrade_mechanism.md`).
 
 > **Governance note** — If the project adopts on-chain governance, the minimum
 > threshold can be moved to contract storage (a `DataKey::MinGoalAmount` entry)
