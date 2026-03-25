@@ -68,14 +68,11 @@ pub mod contribute_error_handling;
 mod contribute_error_handling_tests;
 #[cfg(test)]
 
-mod crowdfund_initialize_function_test;
 #[cfg(test)]
-mod proptest_generator_boundary;
+pub mod proptest_generator_boundary;
 #[cfg(test)]
-
 #[path = "proptest_generator_boundary.test.rs"]
-
-mod proptest_generator_boundary_tests;
+mod proptest_generator_boundary_test;
 pub mod stellar_token_minter;
 #[cfg(test)]
 #[path = "stellar_token_minter.test.rs"]
