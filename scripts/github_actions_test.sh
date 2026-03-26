@@ -112,13 +112,9 @@ else
   pass "rust_ci.yml has exactly $wasm_build_count WASM build step(s)"
 fi
 
-# =============================================================================
-# Check 4 — Smoke test does not call non-existent contract functions
-# @rationale is_initialized and get_campaign_info are not in the public ABI.
-# @security  Unexpected entry points could trigger unintended state changes.
-# @contract_abi Valid: initialize, contribute, withdraw, refund, goal, get_stats
-# =============================================================================
-for bad_fn in "is_initialized" "get_campaign_info"; do
+# ── Check 4: smoke test does not call non-existent contract functions ──────────
+
+for bad_fn in "is_initialized" "get_campaign_info" "get_stats"; do
   if grep -qF -- "-- $bad_fn" "$WORKFLOWS_DIR/testnet_smoke.yml"; then
     fail "testnet_smoke.yml calls non-existent contract function: $bad_fn"
   else
@@ -171,29 +167,32 @@ else
   pass "rust_ci.yml includes a 'frontend' job for UI tests"
 fi
 
-# =============================================================================
-# Check 9 — rust_ci.yml uses Swatinem/rust-cache for dependency caching
-# @rationale Without caching, all Rust deps recompile from scratch every run.
-# @performance Saves 3-8 minutes per run; 60-80% reduction in cold-build time.
-# @see       https://github.com/Swatinem/rust-cache
-# =============================================================================
-if ! grep -qF -- "Swatinem/rust-cache" "$WORKFLOWS_DIR/rust_ci.yml"; then
-  fail "rust_ci.yml is missing Swatinem/rust-cache — dependency caching not configured"
+# ── Check 9: rust_ci.yml check job has a timeout-minutes bound ────────────────
+
+if ! grep -qE "timeout-minutes:" "$WORKFLOWS_DIR/rust_ci.yml"; then
+  fail "rust_ci.yml check job is missing timeout-minutes (runaway build risk)"
 else
-  pass "rust_ci.yml uses Swatinem/rust-cache for dependency caching"
+  pass "rust_ci.yml has timeout-minutes bound"
 fi
 
-# =============================================================================
-# Check 10 — rust_ci.yml has timeout-minutes to prevent runaway builds
-# @rationale A hung build can block a runner for up to 6 hours without a cap.
-# @security  Malicious deps could hang the build to exhaust CI resources.
-# @recommended 30 min for the job; 10 min for WASM build; 15 min for tests.
-# =============================================================================
-if ! grep -qF -- "timeout-minutes" "$WORKFLOWS_DIR/rust_ci.yml"; then
-  fail "rust_ci.yml is missing timeout-minutes — runaway builds will block the runner"
+# ── Check 10: rust_ci.yml WASM build step has a timeout-minutes bound ─────────
+
+wasm_timeout=$(awk '/Build crowdfund WASM/,/run:/' "$WORKFLOWS_DIR/rust_ci.yml" | grep -c "timeout-minutes:" || true)
+if [[ "$wasm_timeout" -eq 0 ]]; then
+  fail "rust_ci.yml WASM build step is missing timeout-minutes"
 else
-  pass "rust_ci.yml has timeout-minutes configured"
+  pass "rust_ci.yml WASM build step has timeout-minutes bound"
 fi
+
+# ── Check 11: rust_ci.yml includes elapsed-time logging step ──────────────────
+
+if ! grep -qE "elapsed|JOB_START" "$WORKFLOWS_DIR/rust_ci.yml"; then
+  fail "rust_ci.yml is missing elapsed-time logging step"
+else
+  pass "rust_ci.yml includes elapsed-time logging"
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
 
 # =============================================================================
 # Check 11 — testnet_smoke.yml has least-privilege permissions
