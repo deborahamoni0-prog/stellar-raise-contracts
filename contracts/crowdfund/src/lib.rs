@@ -8,6 +8,8 @@ use soroban_sdk::{
 
 pub mod access_control;
 pub mod admin_upgrade_mechanism;
+pub mod algorithm_optimization;
+pub mod session_management;
 pub mod campaign_goal_minimum;
 pub mod cargo_toml_rust;
 pub mod contract_state_size;
@@ -81,6 +83,12 @@ mod stream_processing_optimization_test;
 #[cfg(test)]
 #[path = "security_compliance_automation.test.rs"]
 mod security_compliance_automation_test;
+#[cfg(test)]
+#[path = "algorithm_optimization_test.rs"]
+mod algorithm_optimization_test;
+#[cfg(test)]
+#[path = "session_management_test.rs"]
+mod session_management_test;
 
 // --- Constants ---
 const CONTRACT_VERSION: u32 = 3;
